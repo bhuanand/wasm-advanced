@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wasm Memory</title>
+    <script>
+        // Create memory through WebAssembly.Memory constr
+        const wasmMemory = new WebAssembly.Memory({
+            initial: 1,
+            maximum: 1
+        });
+        
+        // Can only manipulate - Read/Write through a typed array
+        const arr = new Uint32Array(wasmMemory.buffer);
+
+        // Provide memory to wasm
+        const wasmEnv = {
+            env: {
+                memory: wasmMemory
+            }
+        };
+
+        // Instantiate wasm
+        WebAssembly.instantiateStreaming(fetch("reverse_array.wasm"), wasmEnv)
+            .then(({instance, module}) => {
+                // Fill the array
+                for (let at = 0; at < 50; ++at) {
+                    arr[at] = at + 1;
+                }
+                // Invoke reverse c fn
+                instance.exports.reverse(0, 50);
+                console.log(arr);
+            });
+
+    </script>
+</head>
+<body>
+    
+</body>
+</html>
